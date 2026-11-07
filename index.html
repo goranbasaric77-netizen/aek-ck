@@ -274,6 +274,7 @@ select.inp{appearance:none;-webkit-appearance:none;padding-right:34px;background
 
 <script>
 /* ============ DATA ============ */
+const BUILD="2026-11-07a";
 const KEY="aekck:v2", LKEY="aekck:look";
 const ACTS=[["FG","Full game"],["PG","Partial game"],["PG+T","Partial game + training"],["TR","Training session"],["OFF","Day off"],["TEST","Isolated re-test"],["INJ","Injured / unavailable"]];
 const ACT_LABEL=Object.fromEntries(ACTS);
@@ -347,7 +348,7 @@ const esc=t=>String(t==null?"":t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 const slug=n=>String(n||"").toLowerCase().replace(/[^a-z]/g,"");
 function av(p,cls){
   return '<div class="av '+(cls||"")+'"><span>'+esc(p.num||p.pos)+'</span>'
-    +'<img src="photos/'+slug(p.name)+'.webp" alt="" decoding="async"></div>';
+    +'<img src="photos/'+slug(p.name)+'.webp?v='+BUILD+'" alt="" decoding="async"></div>';
 }
 function fixImgs(){
   document.querySelectorAll(".av img").forEach(im=>{
@@ -545,7 +546,8 @@ function showGate(msg){
     +'<div class="field" style="margin-top:18px"><label>Staff PIN</label><input class="inp" type="password" id="gPin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>'
     +'<button class="btn" id="gIn">Sign in</button>'
     +'<button class="btn ghost sm" style="margin-top:10px;width:100%" id="gOff">Work on this device only</button>'
-    +(msg?'<div class="note" style="margin-top:12px;color:var(--bad)">'+esc(msg)+"</div>":"")+"</div>";
+    +(msg?'<div class="note" style="margin-top:12px;color:var(--bad)">'+esc(msg)+"</div>":"")
+    +'<div class="note" style="margin-top:14px;font-size:11px">Version '+BUILD+"</div></div>";
   const inp=document.getElementById("gPin");
   const go=()=>{ const p=(inp.value||"").trim(); if(!p){ showGate("Type the PIN first."); return; } saveNet({pin:p}); initNet(); };
   document.getElementById("gIn").onclick=go;
@@ -1356,6 +1358,7 @@ function vData(){
       ? "Every value lands in the shared sheet the moment it is typed, and the other screens pick it up on their own. Whoever enters a value is named next to it. Signed in as <b>"+esc(LIVE.mode==="net"?(LIVE.name||"staff"):((LIVE.me&&LIVE.me.name)||"staff"))+"</b>."+(LIVE.at?" Last check "+hhmm(LIVE.at)+".":"")
       : "This copy keeps everything in this browser. To work with the staff, sign in with the staff PIN; this file stays useful as an offline backup."}</div>
     ${live?'<div class="note" style="margin-top:10px">'+(LIVE.can===false?"This account can read but not write.":LIVE.mode==="net"?"New values from the others arrive within about twenty seconds, and right away when you come back to this screen.":"You can enter and correct values.")+"</div>":""}
+    <div class="note" style="margin-top:10px">Version ${BUILD}. If a screen looks older than another, reload the page once.</div>
     <div class="row2" style="margin-top:12px">${live?'<button class="btn ghost sm" id="reSync">Check now</button>':""}<button class="btn ghost sm" id="expC">Export CSV</button><button class="btn ghost sm" id="expJ">Backup JSON</button>${(LIVE.mode==="net"||(!live&&netUrl()))?'<button class="btn ghost sm" id="signBtn">'+(LIVE.mode==="net"?"Sign out":"Sign in")+"</button>":""}</div>
   </div>
   <div class="card c6"><div class="head"><div><div class="eyebrow">Thresholds</div><h2>Flag rules</h2></div><span class="pill">${nT} CK \u00B7 ${nH} HRV</span></div>
