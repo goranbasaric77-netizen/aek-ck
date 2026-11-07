@@ -483,7 +483,7 @@ async function pullNet(first){
   const n=loadNet();
   let r=null;
   try{ r=await api("pull",{since:first?0:Math.max(0,(n.since||0)-2000)}); }catch(e){ setState("err","net"); return; }
-  if(!r||!r.ok){ setState("err",(r&&r.error)||"pull"); return; }
+  if(!r||!r.ok){ if(r&&r.error==="pin"){ badPin(); return; } setState("err",(r&&r.error)||"pull"); return; }
   let cnt=0; const who={};
   (r.days||[]).forEach(d=>{ cnt+=absorbDay(String(d.coll),String(d.date),{v:d.v},who); });
   (r.base||[]).forEach(b=>{ cnt+=absorbBaseRec(b); });
@@ -510,6 +510,15 @@ function showGate(msg){
   inp.focus();
 }
 function hideGate(){ const g=document.getElementById("gate"); if(g) g.remove(); }
+/* The PIN was changed in the Staff sheet while this device was signed in: ask again rather
+   than sitting on a red dot. Anything still unsent stays in the queue and goes after sign-in. */
+function badPin(){
+  clearInterval(pollTmr);
+  saveNet({pin:"",name:"",since:0});
+  LIVE.mode="net"; LIVE.name="";
+  setState("off");
+  showGate("This PIN is no longer on the staff list. Ask for the new one.");
+}
 async function initDb(){
   LIVE.mode="db";
   setState("wait");
@@ -697,6 +706,7 @@ async function flushNet(job){
   const payload={days:jobDays(job),base:base,squad:squad};
   if(job.cfg) payload.cfg=cfgOut();
   const r=await api("push",payload);
+  if(r&&r.error==="pin"){ badPin(); throw {code:"pin"}; }
   if(!r||!r.ok) throw {code:(r&&r.error)||"push"};
   saveNet({since:Number(r.now)||loadNet().since});
 }
@@ -729,6 +739,7 @@ async function flush(){
     LIVE.at=Date.now(); setState("on");
   }catch(e){
     Object.keys(job).forEach(c=>{ outbox[c]=Object.assign({},job[c],outbox[c]||{}); });
+    if(e&&e.code==="pin") return;
     setState("err",(e&&e.code)||"write");
     clearTimeout(flushTmr); flushTmr=setTimeout(flush,8000);
   }finally{ flushing=false; updChip(); }
