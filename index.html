@@ -1205,20 +1205,29 @@ function vPlayer(){
   document.querySelectorAll("[data-go]").forEach(x=>x.onclick=()=>go(x.dataset.go));
   document.querySelectorAll("[data-del]").forEach(x=>x.onclick=()=>{
     const rec=S.tests.find(y=>y.id===x.dataset.del); if(!rec) return;
-    if(!confirmBox("Delete the CK sample of "+fmtDL(rec.date)+"? It disappears for the whole staff.")) return;
-    const key=rec.date+"|"+rec.pid;
-    S.tests=S.tests.filter(y=>y.id!==x.dataset.del);
-    save(); mark("ck",key); render();
+    armButton(x,"Sure? It goes for everyone",()=>{
+      const key=rec.date+"|"+rec.pid;
+      S.tests=S.tests.filter(y=>y.id!==x.dataset.del);
+      save(); mark("ck",key); render();
+    });
   });
 }
-/* The artifact viewer shows no browser dialogs, so confirmation is a two-tap toast. */
-let askKey=null, askTmr=null;
-function confirmBox(msg){
-  const k=msg;
-  if(askKey===k){ askKey=null; clearTimeout(askTmr); return true; }
-  askKey=k; clearTimeout(askTmr); askTmr=setTimeout(()=>{askKey=null;},4000);
-  toast("Tap again to confirm: "+msg.replace(/\?.*$/,""));
-  return false;
+/* No browser dialogs here, so a button that undoes something asks on the button itself:
+   the first click turns it into the question, the second one does it. */
+function armButton(btn,label,fn){
+  if(btn.dataset.armed==="1"){
+    btn.dataset.armed=""; clearTimeout(btn._t);
+    btn.textContent=btn.dataset.old||btn.textContent;
+    btn.classList.remove("danger");
+    fn(); return;
+  }
+  btn.dataset.armed="1"; btn.dataset.old=btn.textContent;
+  btn.textContent=label; btn.classList.add("danger");
+  clearTimeout(btn._t);
+  btn._t=setTimeout(()=>{
+    btn.dataset.armed=""; btn.textContent=btn.dataset.old||btn.textContent;
+    btn.classList.remove("danger");
+  },8000);
 }
 function svgChart(t,base){
   const W=720,H=260,L=42,R=14,T=16,B=34;
@@ -1331,11 +1340,11 @@ function vData(){
   if(rs) rs.onclick=()=>{ clearTimeout(flushTmr); flush(); if(LIVE.mode==="net") pullNet(false); toast("Checking"); };
   const sb=document.getElementById("signBtn");
   if(sb) sb.onclick=()=>{
-    if(LIVE.mode==="net"){
-      if(!confirmBox("Sign out of the shared sheet on this device?")) return;
+    if(LIVE.mode!=="net"){ showGate(""); return; }
+    armButton(sb,"Tap again to sign out",()=>{
       clearInterval(pollTmr); saveNet({pin:"",name:"",since:0});
       LIVE.mode="off"; LIVE.name=""; setState("off"); render(); showGate("");
-    } else showGate("");
+    });
   };
   document.getElementById("expJ").onclick=()=>download("AEK_CK_HRV_backup_"+todayISO()+".json",JSON.stringify(S,null,1));
   document.getElementById("expC").onclick=()=>{
