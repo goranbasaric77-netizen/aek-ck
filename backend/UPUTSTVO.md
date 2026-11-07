@@ -1,4 +1,12 @@
-# Postavljanje zadnjeg dela (radi Goran, oko 15 minuta, jednom)
+# Postavljanje zadnjeg dela
+
+> **Vec je postavljeno 07.11.2026.** Tabela, skript i objavljivanje su gotovi, `config.js` ima
+> adresu, aplikacija deli podatke. Ispod je opis za slucaj da nesto treba ponoviti ili razumeti.
+>
+> - Tabela: Google Drive, `AEK CK & HRV` (listovi Staff, Days, Base, Squad, Cfg)
+> - Skript: script.google.com, projekat `AEK CK & HRV`, verzija objave 1
+> - PIN-ovi: u listu **Staff** u tabeli. Tamo se i menjaju, i tamo upisujes pravo ime saradnika.
+>   Ne lepiti ih u ovaj repo, javan je.
 
 Ovo je zasebna tabela i zaseban skript. Player Hub se ne dira.
 

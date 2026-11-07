@@ -5,6 +5,9 @@ Jedna stranica, bez build-a. Odvojena od Player Hub-a: svoja tabela, svoj skript
 
 **Živo:** https://goranbasaric77-netizen.github.io/aek-ck/
 
+Zadnji deo je postavljen i radi: deljenje je uključeno, svako se prijavljuje svojim PIN-om
+iz lista Staff u tabeli.
+
 ## Kako se radi zajedno
 
 Svaki član staffa otvori isti link i ukuca svoj PIN. Vrednost koju neko upiše stiže u
@@ -15,7 +18,8 @@ Dvoje mogu da kucaju isti dan u isto vreme: spajanje ide po igraču, ne po danu,
 unosi ne gaze. Ako nema mreže, vrednosti čekaju u redu i same odlaze kad se veza vrati;
 tačkica u zaglavlju je zelena kad je sve poslato, žuta dok šalje, crvena kad ne može.
 
-Postavljanje zadnjeg dela je opisano u [backend/UPUTSTVO.md](backend/UPUTSTVO.md).
+Zadnji deo (Google tabela i Apps Script) je opisan u [backend/UPUTSTVO.md](backend/UPUTSTVO.md).
+PIN-ovi stoje u listu Staff u tabeli, nikad u ovom repou.
 
 ## Ekrani
 
