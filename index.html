@@ -388,7 +388,18 @@ function statusOf(pid){
 const pillCls={HIGH:"r",ELEVATED:"w",NORMAL:"g",none:"",nobase:"y"};
 const stLabel={HIGH:"High",ELEVATED:"Elevated",NORMAL:"Normal",none:"No data",nobase:"No baseline"};
 function avgByAct(t,codes){ const v=t.filter(x=>codes.includes(x.act)).map(x=>x.val); return v.length?mean(v):null; }
-function activePlayers(){ return S.players.filter(p=>p.active!==false); }
+/* Team-sheet order everywhere: keepers first, then defence, midfield, attack, and inside
+   each line by shirt number. A player without a number goes last in his line. */
+const POSORD={GK:0,DEF:1,MID:2,FWD:3};
+function squadCmp(a,b){
+  const pa=POSORD[a.pos]==null?4:POSORD[a.pos], pb=POSORD[b.pos]==null?4:POSORD[b.pos];
+  if(pa!==pb) return pa-pb;
+  const na=parseInt(a.num,10), nb=parseInt(b.num,10);
+  const ia=isNaN(na)?999:na, ib=isNaN(nb)?999:nb;
+  if(ia!==ib) return ia-ib;
+  return String(a.name||"").localeCompare(String(b.name||""));
+}
+function activePlayers(){ return S.players.filter(p=>p.active!==false).sort(squadCmp); }
 function lastDrawDate(){ return S.tests.length?S.tests.map(t=>t.date).sort().pop():null; }
 
 /* ============ HRV MODEL ============
@@ -859,7 +870,7 @@ function vSquad(){
   const tested=ld?st.filter(x=>x.last&&x.last.date===ld).length:0;
   const cross=st.filter(x=>(x.st==="HIGH"||x.st==="ELEVATED")&&(x.h.st==="LOW"||x.h.st==="WATCH"));
   const order={HIGH:0,ELEVATED:1,NORMAL:2,nobase:3,none:4};
-  let list=st.slice().sort((a,b)=>order[a.st]-order[b.st]||(b.pct||0)-(a.pct||0)||a.p.name.localeCompare(b.p.name));
+  let list=st.slice().sort((a,b)=>order[a.st]-order[b.st]||(b.pct||0)-(a.pct||0)||squadCmp(a.p,b.p));
   if(squadFilter==="flag") list=list.filter(x=>x.st==="HIGH"||x.st==="ELEVATED");
   if(squadFilter==="nobase") list=list.filter(x=>x.base.v==null);
   const hero=S.tests.length?"":'<div class="card hero"><div class="eyebrow">Start here</div><h1>Baseline first</h1><p>CK is highly individual. Before any match or training sample can be read, each player needs 2 to 4 rested samples. Set them on the Baseline screen, then log draws on Draw entry.</p><button class="btn dark" data-go="baseline">Set baselines</button></div>';
@@ -1028,7 +1039,7 @@ function vHrv(){
   const today=ld?st.filter(x=>x.h.last&&x.h.last.date===ld).length:0;
   const nLo=st.filter(x=>x.h.st==="LOW").length, nW=st.filter(x=>x.h.st==="WATCH").length, nB=st.filter(x=>x.h.st==="build"||x.h.st==="none").length;
   const order={LOW:0,WATCH:1,ABOVE:2,OK:3,build:4,none:5};
-  const list=st.slice().sort((a,b)=>order[a.h.st]-order[b.h.st]||a.p.name.localeCompare(b.p.name));
+  const list=st.slice().sort((a,b)=>order[a.h.st]-order[b.h.st]||squadCmp(a.p,b.p));
   const hero=S.hrv.length?"":'<div class="card hero"><div class="eyebrow">Start here</div><h1>Seven mornings</h1><p>HRV only means something against the player\'s own history. Record the morning value the same way every day; after seven mornings the app draws his normal band and starts flagging days that fall outside it.</p><button class="btn dark" data-go="hrventry">Enter this morning</button></div>';
   const rows=list.map(x=>{
     const h=x.h;
@@ -1336,7 +1347,7 @@ function vData(){
   setTitle("Data","Connection, export, thresholds, roster");
   const nT=S.tests.length, nD=new Set(S.tests.map(t=>t.date)).size, nH=S.hrv.length;
   const ro=readOnly();
-  const roster=S.players.map(p=>'<tr class="'+(p.active===false?"muted":"")+'"><td style="width:54px"><input class="inp" style="padding:6px;text-align:center;font-weight:800" value="'+esc(p.num)+'" data-num="'+p.id+'" placeholder="#"'+(ro?" disabled":"")+'></td><td><input class="inp" style="padding:6px 8px" value="'+esc(p.name)+'" data-name="'+p.id+'"'+(ro?" disabled":"")+'></td><td style="width:70px"><select class="inp" style="padding:6px 24px 6px 6px;font-size:13px" data-pos="'+p.id+'"'+(ro?" disabled":"")+">"+["GK","DEF","MID","FWD"].map(x=>"<option "+(p.pos===x?"selected":"")+">"+x+"</option>").join("")+'</select></td><td style="width:70px;text-align:right">'+(ro?"":'<button class="mini '+(p.active===false?"":"r")+'" data-tog="'+p.id+'">'+(p.active===false?"Restore":"Hide")+"</button>")+"</td></tr>").join("");
+  const roster=S.players.slice().sort(squadCmp).map(p=>'<tr class="'+(p.active===false?"muted":"")+'"><td style="width:54px"><input class="inp" style="padding:6px;text-align:center;font-weight:800" value="'+esc(p.num)+'" data-num="'+p.id+'" placeholder="#"'+(ro?" disabled":"")+'></td><td><input class="inp" style="padding:6px 8px" value="'+esc(p.name)+'" data-name="'+p.id+'"'+(ro?" disabled":"")+'></td><td style="width:70px"><select class="inp" style="padding:6px 24px 6px 6px;font-size:13px" data-pos="'+p.id+'"'+(ro?" disabled":"")+">"+["GK","DEF","MID","FWD"].map(x=>"<option "+(p.pos===x?"selected":"")+">"+x+"</option>").join("")+'</select></td><td style="width:70px;text-align:right">'+(ro?"":'<button class="mini '+(p.active===false?"":"r")+'" data-tog="'+p.id+'">'+(p.active===false?"Restore":"Hide")+"</button>")+"</td></tr>").join("");
   const live=LIVE.state!=="off";
   document.getElementById("view").innerHTML=`
   <div class="card c6"><div class="head"><div><div class="eyebrow">Connection</div><h2>${live?"Shared with the staff":"This device only"}</h2></div>
