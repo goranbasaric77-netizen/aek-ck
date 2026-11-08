@@ -1,4 +1,12 @@
 <title>AEK CK &amp; HRV Monitor</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AEK CK">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap">
@@ -243,6 +251,8 @@ select.inp{appearance:none;-webkit-appearance:none;padding-right:34px;background
 .gate{position:fixed;inset:0;z-index:40;background:var(--bg);display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
 .gate .box{width:100%;max-width:360px}
 .gate .mono{width:52px;height:52px;font-size:17px;margin-bottom:14px}
+.gate .gatecrest{width:64px;height:auto;margin-bottom:14px;display:block}
+.gate .gatecrest.hidden{display:none}
 .gate h1{font-size:34px;font-weight:900;text-transform:uppercase;line-height:.95}
 .byline{display:block;font-weight:600;font-size:10.5px;color:var(--muted);letter-spacing:.02em;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cross{display:flex;flex-direction:column;gap:8px}
@@ -274,7 +284,7 @@ select.inp{appearance:none;-webkit-appearance:none;padding-right:34px;background
 
 <script>
 /* ============ DATA ============ */
-const BUILD="2026-11-07b";
+const BUILD="2026-11-09a";
 const KEY="aekck:v2", LKEY="aekck:look";
 const ACTS=[["FG","Full game"],["PG","Partial game"],["PG+T","Partial game + training"],["TR","Training session"],["OFF","Day off"],["TEST","Isolated re-test"],["INJ","Injured / unavailable"]];
 const ACT_LABEL=Object.fromEntries(ACTS);
@@ -357,7 +367,7 @@ function fixImgs(){
   });
 }
 function crestInit(){
-  [["brandCrest","brandMono"],["topCrest","topMono"]].forEach(([ci,mi])=>{
+  [["brandCrest","brandMono"],["topCrest","topMono"],["gateCrest","gateMono"]].forEach(([ci,mi])=>{
     const im=document.getElementById(ci), mo=document.getElementById(mi);
     if(!im) return;
     const ok=()=>{ im.classList.remove("hidden"); if(mo) mo.classList.add("hidden"); };
@@ -541,13 +551,14 @@ async function pullNet(first){
 function showGate(msg){
   let g=document.getElementById("gate");
   if(!g){ g=document.createElement("div"); g.id="gate"; g.className="gate"; document.body.appendChild(g); }
-  g.innerHTML='<div class="box"><div class="mono">AEK</div><h1>CK &amp; HRV<br>Monitor</h1>'
+  g.innerHTML='<div class="box"><div class="mono" id="gateMono">AEK</div><img class="crest gatecrest hidden" id="gateCrest" src="crest.webp?v='+BUILD+'" alt="AEK Athens FC"><h1>CK &amp; HRV<br>Monitor</h1>'
     +'<div class="note" style="margin-top:10px">Staff sign-in. What you enter is shared with the performance staff straight away, and whatever they enter shows up here.</div>'
     +'<div class="field" style="margin-top:18px"><label>Staff PIN</label><input class="inp" type="password" id="gPin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>'
     +'<button class="btn" id="gIn">Sign in</button>'
     +'<button class="btn ghost sm" style="margin-top:10px;width:100%" id="gOff">Work on this device only</button>'
     +(msg?'<div class="note" style="margin-top:12px;color:var(--bad)">'+esc(msg)+"</div>":"")
     +'<div class="note" style="margin-top:14px;font-size:11px">Version '+BUILD+"</div></div>";
+  crestInit();
   const inp=document.getElementById("gPin");
   const go=()=>{ const p=(inp.value||"").trim(); if(!p){ showGate("Type the PIN first."); return; } saveNet({pin:p}); initNet(); };
   document.getElementById("gIn").onclick=go;
